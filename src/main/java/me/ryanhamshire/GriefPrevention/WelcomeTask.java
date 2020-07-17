@@ -23,8 +23,10 @@ public class WelcomeTask implements Runnable
         if (!this.player.isOnline()) return;
 
         //offer advice and a helpful link
-        GriefPrevention.sendMessage(player, TextMode.Instr, Messages.AvoidGriefClaimLand);
-        GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
+        // Firestarter start :: don't send video urls
+        // GriefPrevention.sendMessage(player, TextMode.Instr, Messages.AvoidGriefClaimLand);
+        // GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
+        // Firestarter end
 
         //give the player a reference book for later
         if (GriefPrevention.instance.config_claims_supplyPlayerManual)

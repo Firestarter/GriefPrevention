@@ -23,6 +23,8 @@ import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.metrics.MetricsHandler;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.BanList;
 import org.bukkit.BanList.Type;
@@ -1825,8 +1827,10 @@ public class GriefPrevention extends JavaPlugin
             //if no parameter, just tell player cost per block and balance
             if (args.length != 1)
             {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(GriefPrevention.economy.getBalance(player.getName())));
-                return false;
+                // Firestarter start :: edit buyclaimblocks message
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, "$" + Math.floor(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), "$" + formatNumber(GriefPrevention.economy.getBalance(player.getName())));
+                return true;
+                // Firestarter end
             }
             else
             {
@@ -2212,21 +2216,45 @@ public class GriefPrevention extends JavaPlugin
             //load the target player's data
             PlayerData playerData = this.dataStore.getPlayerData(otherPlayer.getUniqueId());
             Vector<Claim> claims = playerData.getClaims();
-            GriefPrevention.sendMessage(player, TextMode.Instr, Messages.StartBlockMath,
+
+            // Firestarter start :: clean up claim list format + add clickable teleport messages
+            player.sendMessage(" ");
+
+            boolean you = player.getUniqueId().equals(otherPlayer.getUniqueId());
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
+                    "&e&l%s Claims:", you ? "Your" : otherPlayer.getName() + "'s"
+            )));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
+                    "&7%s %s &a%s &7claim blocks remaining.", you ? "You" : otherPlayer.getName(), you ? "have" : "has",
+                    formatNumber(playerData.getRemainingClaimBlocks())
+            )));
+
+            /*GriefPrevention.sendMessage(player, TextMode.Instr, Messages.StartBlockMath,
                     String.valueOf(playerData.getAccruedClaimBlocks()),
                     String.valueOf((playerData.getBonusClaimBlocks() + this.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))),
-                    String.valueOf((playerData.getAccruedClaimBlocks() + playerData.getBonusClaimBlocks() + this.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))));
+                    String.valueOf((playerData.getAccruedClaimBlocks() + playerData.getBonusClaimBlocks() + this.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))));*/
             if (claims.size() > 0)
             {
-                GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
+                player.sendMessage(" ");
+                // GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
                 for (int i = 0; i < playerData.getClaims().size(); i++)
                 {
                     Claim claim = playerData.getClaims().get(i);
-                    GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()) + this.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea())));
+                    //GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()) + this.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea())));
+                    TextComponent component = new TextComponent(getfriendlyLocationString(claim.getLesserBoundaryCorner()) + this.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea())));
+                    if (player.hasPermission("griefprevention.claimslistother")) {
+                        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format(
+                                "/tppos %s 90 %s", claim.getLesserBoundaryCorner().getBlockX(), claim.getLesserBoundaryCorner().getBlockZ()
+                        )));
+                    }
+                    player.spigot().sendMessage(component);
                 }
 
-                GriefPrevention.sendMessage(player, TextMode.Instr, Messages.EndBlockMath, String.valueOf(playerData.getRemainingClaimBlocks()));
+                // GriefPrevention.sendMessage(player, TextMode.Instr, Messages.EndBlockMath, String.valueOf(playerData.getRemainingClaimBlocks()));
             }
+
+            player.sendMessage(" ");
+            // Firestarter end
 
             //drop the data we just loaded, if the player isn't online
             if (!otherPlayer.isOnline())
