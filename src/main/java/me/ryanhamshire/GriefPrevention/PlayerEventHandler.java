@@ -277,7 +277,8 @@ class PlayerEventHandler implements Listener
 
         //FEATURE: automatically educate players about the /trapped command
         //check for "trapped" or "stuck" to educate players about the /trapped command
-        String trappedwords = this.dataStore.getMessage(
+        // Firestarter start :: remove trapped command suggestions
+        /* String trappedwords = this.dataStore.getMessage(
                 Messages.TrappedChatKeyword
         );
         if (!trappedwords.isEmpty())
@@ -298,7 +299,8 @@ class PlayerEventHandler implements Listener
                     break;
                 }
             }
-        }
+        } */
+        // Firestarter end
 
         //FEATURE: monitor for chat and command spam
 

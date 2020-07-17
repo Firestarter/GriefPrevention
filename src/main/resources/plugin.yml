@@ -132,10 +132,10 @@ commands:
       usage: /SellClaimBlocks <numberOfBlocks>
       aliases: sellclaim
       permission: griefprevention.buysellclaimblocks
-    trapped:
-      description: Ejects you to nearby unclaimed land.  Has a substantial cooldown period.
-      usage: /Trapped
-      permission: griefprevention.trapped
+    # trapped:
+    #   description: Ejects you to nearby unclaimed land.  Has a substantial cooldown period.
+    #   usage: /Trapped
+    #   permission: griefprevention.trapped
     trustlist:
       description: Lists permissions for the claim you're standing in.
       usage: /TrustList

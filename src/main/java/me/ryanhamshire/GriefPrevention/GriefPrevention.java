@@ -2447,7 +2447,8 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //trapped
-        else if (cmd.getName().equalsIgnoreCase("trapped") && player != null)
+        // Firestarter start :: remove trapped command as it can be easily exploited
+        /* else if (cmd.getName().equalsIgnoreCase("trapped") && player != null)
         {
             //FEATURE: empower players who get "stuck" in an area where they don't have permission to build to save themselves
 
@@ -2492,7 +2493,8 @@ public class GriefPrevention extends JavaPlugin
             this.getServer().getScheduler().scheduleSyncDelayedTask(this, task, 200L);  //20L ~ 1 second
 
             return true;
-        }
+        }*/
+        // Firestarter end
 
         //siege
         else if (cmd.getName().equalsIgnoreCase("siege") && player != null)
