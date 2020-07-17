@@ -34,6 +34,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -56,6 +57,7 @@ import org.bukkit.util.BlockIterator;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1088,7 +1090,15 @@ public class GriefPrevention extends JavaPlugin
             int remaining = playerData.getRemainingClaimBlocks();
             if (remaining < area)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.CreateClaimInsufficientBlocks, String.valueOf(area - remaining));
+                // Firestarter start :: use title messages instead of chat
+                // GriefPrevention.sendMessage(player, TextMode.Err, Messages.CreateClaimInsufficientBlocks, String.valueOf(area - remaining));
+                sendTitle(
+                        player,
+                        "&c&lNot enough blocks!",
+                        String.format("You need %s more claim blocks", formatNumber(area - remaining)),
+                        SoundType.DISALLOWED
+                );
+                // Firestarter end
                 GriefPrevention.instance.dataStore.tryAdvertiseAdminAlternatives(player);
                 return true;
             }
@@ -2936,8 +2946,15 @@ public class GriefPrevention extends JavaPlugin
 
             //tell the player how many claim blocks he has left
             int remainingBlocks = playerData.getRemainingClaimBlocks();
-            GriefPrevention.sendMessage(player, TextMode.Success, Messages.AbandonSuccess, String.valueOf(remainingBlocks));
-
+            // Firestarter start :: use title messages instead of chat
+            // GriefPrevention.sendMessage(player, TextMode.Success, Messages.AbandonSuccess, String.valueOf(remainingBlocks));
+            sendTitle(
+                    player,
+                    "&6&lAbandoned claim!",
+                    "This land is now part of the wilderness",
+                    SoundType.CRITICAL_ACTION
+            );
+            // Firestarter end
             //revert any current visualization
             Visualization.Revert(player);
 
@@ -3124,7 +3141,15 @@ public class GriefPrevention extends JavaPlugin
             location = this.dataStore.getMessage(Messages.LocationCurrentClaim);
         }
 
-        GriefPrevention.sendMessage(player, TextMode.Success, Messages.GrantPermissionConfirmation, recipientName, permissionDescription, location);
+        // Firestarter start :: use title messages instead of chat
+        // GriefPrevention.sendMessage(player, TextMode.Success, Messages.GrantPermissionConfirmation, recipientName, permissionDescription, location);
+        sendTitle(
+                player,
+                String.format("&a&lTrusted %s!", recipientName),
+                String.format("Granted permission to %s %s", permissionDescription, location),
+                SoundType.SUCCESS
+        );
+        // Firestarter end
     }
 
     //helper method to resolve a player by name
@@ -3399,6 +3424,47 @@ public class GriefPrevention extends JavaPlugin
             task.run();
         }
     }
+
+    // Firestarter start :: utility methods
+    public static void sendTitle(Player player, String top, String bottom, SoundType soundType)
+    {
+        player.sendTitle(
+                ChatColor.translateAlternateColorCodes('&', top),
+                ChatColor.translateAlternateColorCodes('&', bottom),
+                10, 140, 10
+        );
+        playSound(player, soundType);
+    }
+
+    public static void playSound(Player player, SoundType soundType)
+    {
+        player.playSound(
+                player.getLocation(),
+                soundType.sound,
+                1.0f, 1.0f
+        );
+    }
+
+    public enum SoundType {
+        SUCCESS(Sound.ENTITY_PLAYER_LEVELUP),
+        DISALLOWED(Sound.ENTITY_VILLAGER_NO),
+        CRITICAL_ACTION(Sound.BLOCK_ANVIL_LAND),
+        ACTION(Sound.UI_LOOM_TAKE_RESULT);
+
+        public final Sound sound;
+
+        SoundType(Sound sound) {
+            this.sound = sound;
+        }
+    }
+
+    private static final DecimalFormat FORMAT = new DecimalFormat("#,###");
+
+    public static String formatNumber(double number)
+    {
+        return FORMAT.format(number);
+    }
+    // Firestarter end
 
     //checks whether players can create claims in a world
     public boolean claimsEnabledForWorld(World world)

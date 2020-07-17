@@ -1393,7 +1393,15 @@ public abstract class DataStore
             }
 
             //inform about success, visualize, communicate remaining blocks available
-            GriefPrevention.sendMessage(player, TextMode.Success, Messages.ClaimResizeSuccess, String.valueOf(claimBlocksRemaining));
+            // Firestarter start :: use title messages instead of chat
+            // GriefPrevention.sendMessage(player, TextMode.Success, Messages.ClaimResizeSuccess, String.valueOf(claimBlocksRemaining));
+            GriefPrevention.sendTitle(
+                    player,
+                    "&a&lClaimed!",
+                    "This land now belongs to you",
+                    GriefPrevention.SoundType.SUCCESS
+            );
+            // Firestarter end
             Visualization visualization = Visualization.FromClaim(result.claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
             Visualization.Apply(player, visualization);
 
@@ -1407,7 +1415,7 @@ public abstract class DataStore
             if (oldClaim.getArea() < 1000 && result.claim.getArea() >= 1000 && result.claim.children.size() == 0 && !player.hasPermission("griefprevention.adminclaims"))
             {
                 GriefPrevention.sendMessage(player, TextMode.Info, Messages.BecomeMayor, 200L);
-                GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SubdivisionVideo2, 201L, DataStore.SUBDIVISION_VIDEO_URL);
+                // GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SubdivisionVideo2, 201L, DataStore.SUBDIVISION_VIDEO_URL); // Firestarter :: don't send video urls
             }
 
             //if in a creative mode world and shrinking an existing claim, restore any unclaimed area
@@ -1427,8 +1435,15 @@ public abstract class DataStore
             if (result.claim != null)
             {
                 //inform player
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlap);
-
+                // Firestarter start :: use title messages instead of chat
+                // GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlap);
+                GriefPrevention.sendTitle(
+                        player,
+                        "&c&lOverlapping area!",
+                        "The new area would overlap an existing claim",
+                        GriefPrevention.SoundType.DISALLOWED
+                );
+                // Firestarter end
                 //show the player the conflicting claim
                 Visualization visualization = Visualization.FromClaim(result.claim, player.getEyeLocation().getBlockY(), VisualizationType.ErrorClaim, player.getLocation());
                 Visualization.Apply(player, visualization);

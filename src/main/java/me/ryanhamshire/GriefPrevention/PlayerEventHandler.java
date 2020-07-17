@@ -2394,7 +2394,15 @@ class PlayerEventHandler implements Listener
                     {
                         playerData.claimResizing = claim;
                         playerData.lastShovelLocation = clickedBlock.getLocation();
-                        instance.sendMessage(player, TextMode.Instr, Messages.ResizeStart);
+                        // Firestarter start :: use title messages instead of chat
+                        // instance.sendMessage(player, TextMode.Instr, Messages.ResizeStart);
+                        GriefPrevention.sendTitle(
+                                player,
+                                "&e&lResizing...",
+                                "Right-click at the new location for this corner",
+                                GriefPrevention.SoundType.ACTION
+                        );
+                        // Firestarter end
                     }
 
                     //if he didn't click on a corner and is in subdivision mode, he's creating a new subdivision
@@ -2406,13 +2414,29 @@ class PlayerEventHandler implements Listener
                             //if the clicked claim was a subdivision, tell him he can't start a new subdivision here
                             if (claim.parent != null)
                             {
-                                instance.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlapSubdivision);
+                                // Firestarter start :: use title messages instead of chat
+                                // instance.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlapSubdivision);
+                                GriefPrevention.sendTitle(
+                                        player,
+                                        "&c&lOverlapping area!",
+                                        "The new area would overlap an existing subdivision",
+                                        GriefPrevention.SoundType.DISALLOWED
+                                );
+                                // Firestarter end
                             }
 
                             //otherwise start a new subdivision
                             else
                             {
-                                instance.sendMessage(player, TextMode.Instr, Messages.SubdivisionStart);
+                                // Firestarter start :: use title messages instead of chat
+                                // instance.sendMessage(player, TextMode.Instr, Messages.SubdivisionStart);
+                                GriefPrevention.sendTitle(
+                                        player,
+                                        "&e&lCorner set!",
+                                        "Right-click at the opposite corner to claim a rectangle",
+                                        GriefPrevention.SoundType.ACTION
+                                );
+                                // Firestarter end
                                 playerData.lastShovelLocation = clickedBlock.getLocation();
                                 playerData.claimSubdividing = claim;
                             }
@@ -2442,8 +2466,15 @@ class PlayerEventHandler implements Listener
                             //if it didn't succeed, tell the player why
                             if (!result.succeeded)
                             {
-                                instance.sendMessage(player, TextMode.Err, Messages.CreateSubdivisionOverlap);
-
+                                // Firestarter start :: use title messages instead of chat
+                                // instance.sendMessage(player, TextMode.Err, Messages.CreateSubdivisionOverlap);
+                                GriefPrevention.sendTitle(
+                                        player,
+                                        "&c&lOverlapping area!",
+                                        "The new area would overlap another subdivision",
+                                        GriefPrevention.SoundType.DISALLOWED
+                                );
+                                // Firestarter end
                                 Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                                 // alert plugins of a visualization
@@ -2457,7 +2488,15 @@ class PlayerEventHandler implements Listener
                             //otherwise, advise him on the /trust command and show him his new subdivision
                             else
                             {
-                                instance.sendMessage(player, TextMode.Success, Messages.SubdivisionSuccess);
+                                // Firestarter start :: use title messages instead of chat
+                                // instance.sendMessage(player, TextMode.Success, Messages.SubdivisionSuccess);
+                                GriefPrevention.sendTitle(
+                                        player,
+                                        "&aSubdivided claim!",
+                                        "Trust others to this area using /trust",
+                                        GriefPrevention.SoundType.SUCCESS
+                                );
+                                // Firestarter end
                                 Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                                 // alert plugins of a visualization
@@ -2474,7 +2513,15 @@ class PlayerEventHandler implements Listener
                     //also advise him to consider /abandonclaim or resizing the existing claim
                     else
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlap);
+                        // Firestarter start :: use title messages instead of chat
+                        // instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlap);
+                        GriefPrevention.sendTitle(
+                                player,
+                                "&c&lOverlapping area!",
+                                "The new area would overlap another claim",
+                                GriefPrevention.SoundType.DISALLOWED
+                        );
+                        // Firestarter end
                         Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                         // alert plugins of a visualization
@@ -2487,7 +2534,15 @@ class PlayerEventHandler implements Listener
                 //otherwise tell the player he can't claim here because it's someone else's claim, and show him the claim
                 else
                 {
-                    instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayer, claim.getOwnerName());
+                    // Firestarter start :: use title messages instead of chat
+                    // instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayer, claim.getOwnerName());
+                    GriefPrevention.sendTitle(
+                            player,
+                            "&c&lOverlapping area!",
+                            String.format("The new area would overlap %s's claim", claim.getOwnerName()),
+                            GriefPrevention.SoundType.DISALLOWED
+                    );
+                    // Firestarter end
                     Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                     // alert plugins of a visualization
@@ -2523,7 +2578,15 @@ class PlayerEventHandler implements Listener
 
                 //remember it, and start him on the new claim
                 playerData.lastShovelLocation = clickedBlock.getLocation();
-                instance.sendMessage(player, TextMode.Instr, Messages.ClaimStart);
+                // Firestarter start :: use title messages instead of chat
+                // instance.sendMessage(player, TextMode.Instr, Messages.ClaimStart);
+                GriefPrevention.sendTitle(
+                        player,
+                        "&e&lCorner set!",
+                        "Right-click at opposite corner to claim a rectangle",
+                        GriefPrevention.SoundType.ACTION
+                );
+                // Firestarter end
 
                 //show him where he's working
                 Claim newClaim = new Claim(clickedBlock.getLocation(), clickedBlock.getLocation(), null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null);
@@ -2564,7 +2627,15 @@ class PlayerEventHandler implements Listener
                         //this IF block is a workaround for craftbukkit bug which fires two events for one interaction
                         if (newClaimWidth != 1 && newClaimHeight != 1)
                         {
-                            instance.sendMessage(player, TextMode.Err, Messages.NewClaimTooNarrow, String.valueOf(instance.config_claims_minWidth));
+                            // Firestarter start :: use title messages instead of chat
+                            // instance.sendMessage(player, TextMode.Err, Messages.NewClaimTooNarrow, String.valueOf(instance.config_claims_minWidth));
+                            GriefPrevention.sendTitle(
+                                    player,
+                                    "&c&lArea too small!",
+                                    "Claims must be at least 100 blocks in size",
+                                    GriefPrevention.SoundType.DISALLOWED
+                            );
+                            // Firestarter end
                         }
                         return;
                     }
@@ -2574,7 +2645,15 @@ class PlayerEventHandler implements Listener
                     {
                         if (newArea != 1)
                         {
-                            instance.sendMessage(player, TextMode.Err, Messages.ResizeClaimInsufficientArea, String.valueOf(instance.config_claims_minArea));
+                            // Firestarter start :: use title messages instead of chat
+                            // instance.sendMessage(player, TextMode.Err, Messages.ResizeClaimInsufficientArea, String.valueOf(instance.config_claims_minArea));
+                            GriefPrevention.sendTitle(
+                                    player,
+                                    "&c&lArea too small!",
+                                    "Claims must be at least 100 blocks in size",
+                                    GriefPrevention.SoundType.DISALLOWED
+                            );
+                            // Firestarter end
                         }
 
                         return;
@@ -2588,7 +2667,15 @@ class PlayerEventHandler implements Listener
                     int remainingBlocks = playerData.getRemainingClaimBlocks();
                     if (newClaimArea > remainingBlocks)
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimInsufficientBlocks, String.valueOf(newClaimArea - remainingBlocks));
+                        // Firestarter start :: use title messages instead of chat
+                        // instance.sendMessage(player, TextMode.Err, Messages.CreateClaimInsufficientBlocks, String.valueOf(newClaimArea - remainingBlocks));
+                        GriefPrevention.sendTitle(
+                                player,
+                                "&c&lNot enough blocks!",
+                                String.format("You need %s more claim blocks", GriefPrevention.formatNumber(newClaimArea - remainingBlocks)),
+                                GriefPrevention.SoundType.DISALLOWED
+                        );
+                        // Firestarter end
                         instance.dataStore.tryAdvertiseAdminAlternatives(player);
                         return;
                     }
@@ -2613,7 +2700,15 @@ class PlayerEventHandler implements Listener
                 {
                     if (result.claim != null)
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapShort);
+                        // Firestarter start :: use title messages instead of chat
+                        // instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapShort);
+                        GriefPrevention.sendTitle(
+                                player,
+                                "&c&lOverlapping area!",
+                                "The new area would overlap another claim",
+                                GriefPrevention.SoundType.DISALLOWED
+                        );
+                        // Firestarter end
 
                         Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
@@ -2624,7 +2719,15 @@ class PlayerEventHandler implements Listener
                     }
                     else
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapRegion);
+                        // Firestarter start :: use title messages instead of chat
+                        // instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapRegion);
+                        GriefPrevention.sendTitle(
+                                player,
+                                "&c&lOverlapping area!",
+                                "The new area would overlap another claim",
+                                GriefPrevention.SoundType.DISALLOWED
+                        );
+                        // Firestarter end
                     }
 
                     return;
@@ -2633,7 +2736,15 @@ class PlayerEventHandler implements Listener
                 //otherwise, advise him on the /trust command and show him his new claim
                 else
                 {
-                    instance.sendMessage(player, TextMode.Success, Messages.CreateClaimSuccess);
+                    // Firestarter start :: use title messages instead of chat
+                    // instance.sendMessage(player, TextMode.Success, Messages.CreateClaimSuccess);
+                    GriefPrevention.sendTitle(
+                            player,
+                            "&a&lClaimed!",
+                            "This land now belongs to you",
+                            GriefPrevention.SoundType.SUCCESS
+                    );
+                    // Firestarter end
                     Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                     // alert plugins of a visualization
@@ -2646,7 +2757,7 @@ class PlayerEventHandler implements Listener
                     if (!player.hasPermission("griefprevention.adminclaims") && result.claim.getArea() >= 1000)
                     {
                         instance.sendMessage(player, TextMode.Info, Messages.BecomeMayor, 200L);
-                        instance.sendMessage(player, TextMode.Instr, Messages.SubdivisionVideo2, 201L, DataStore.SUBDIVISION_VIDEO_URL);
+                        // instance.sendMessage(player, TextMode.Instr, Messages.SubdivisionVideo2, 201L, DataStore.SUBDIVISION_VIDEO_URL); // Firestarter :: don't send video urls
                     }
 
                     instance.autoExtendClaim(result.claim);
