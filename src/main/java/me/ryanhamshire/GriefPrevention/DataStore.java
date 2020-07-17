@@ -680,7 +680,7 @@ public abstract class DataStore
         //optionally set any pets free which belong to the claim owner
         if (releasePets && claim.ownerID != null && claim.parent == null)
         {
-            for (Chunk chunk : claim.getChunks())
+            claim.performOnChunksAsync(chunk ->
             {
                 Entity[] entities = chunk.getEntities();
                 for (Entity entity : entities)
@@ -711,7 +711,7 @@ public abstract class DataStore
                         }
                     }
                 }
-            }
+            });
         }
     }
 

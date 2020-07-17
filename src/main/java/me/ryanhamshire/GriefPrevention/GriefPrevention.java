@@ -24,6 +24,7 @@ import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.metrics.MetricsHandler;
 import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.BanList;
@@ -1828,7 +1829,7 @@ public class GriefPrevention extends JavaPlugin
             if (args.length != 1)
             {
                 // Firestarter start :: edit buyclaimblocks message
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, "$" + Math.floor(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), "$" + formatNumber(GriefPrevention.economy.getBalance(player.getName())));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, "$" + GriefPrevention.instance.config_economy_claimBlocksPurchaseCost, "$" + formatNumber(GriefPrevention.economy.getBalance(player.getName())));
                 return true;
                 // Firestarter end
             }
@@ -2243,6 +2244,7 @@ public class GriefPrevention extends JavaPlugin
                     //GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()) + this.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea())));
                     TextComponent component = new TextComponent(getfriendlyLocationString(claim.getLesserBoundaryCorner()) + this.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea())));
                     if (player.hasPermission("griefprevention.claimslistother")) {
+                        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Click to teleport to claim.")));
                         component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format(
                                 "/tppos %s 90 %s", claim.getLesserBoundaryCorner().getBlockX(), claim.getLesserBoundaryCorner().getBlockZ()
                         )));

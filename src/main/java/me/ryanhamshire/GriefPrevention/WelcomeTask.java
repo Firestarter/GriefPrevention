@@ -1,6 +1,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFactory;
@@ -39,7 +40,9 @@ public class WelcomeTask implements Runnable
             meta.setTitle(datastore.getMessage(Messages.BookTitle));
 
             StringBuilder page1 = new StringBuilder();
-            String URL = datastore.getMessage(Messages.BookLink, DataStore.SURVIVAL_VIDEO_URL);
+            // Firestarter start :: edit claim book contents
+            // String URL = datastore.getMessage(Messages.BookLink, DataStore.SURVIVAL_VIDEO_URL);
+            String URL = "§c§lFirestarter§r\n§oClaiming Guide\n\n§rVideo: §3bit.ly/mcgpuser§r";
             String intro = datastore.getMessage(Messages.BookIntro);
 
             page1.append(URL).append("\n\n");
@@ -53,7 +56,7 @@ public class WelcomeTask implements Runnable
                 page1.append(datastore.getMessage(Messages.BookDisabledChestClaims));
             }
 
-            StringBuilder page2 = new StringBuilder(datastore.getMessage(Messages.BookUsefulCommands)).append("\n\n");
+            /*StringBuilder page2 = new StringBuilder(datastore.getMessage(Messages.BookUsefulCommands)).append("\n\n");
             page2.append("/Trust /UnTrust /TrustList\n");
             page2.append("/ClaimsList\n");
             page2.append("/AbandonClaim\n\n");
@@ -66,7 +69,20 @@ public class WelcomeTask implements Runnable
             page2.append("/ContainerTrust\n");
             page2.append("/PermissionTrust");
 
-            meta.setPages(page1.toString(), page2.toString());
+            meta.setPages(page1.toString(), page2.toString());*/
+            String page2 = "§lTypes of Trust:§r\n" +
+                    "/trust /untrust /trustlist\n" +
+                    "/accesstrust\n" +
+                    "/containertrust\n" +
+                    "/permissiontrust\n\n" +
+                    "§lOther commands:§r\n" +
+                    "/subdivideclaims\n" +
+                    "/claimlist\n" +
+                    "/abandonclaim\n" +
+                    "/claim /extendclaim\n";
+            meta.setPages(ChatColor.translateAlternateColorCodes('&', page1.toString()),
+                    ChatColor.translateAlternateColorCodes('&', page2));
+            // Firestarter end
 
             ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
             item.setItemMeta(meta);

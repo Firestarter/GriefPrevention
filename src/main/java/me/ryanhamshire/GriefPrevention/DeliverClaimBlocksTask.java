@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.AccrueClaimBlocksEvent;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -73,8 +74,14 @@ class DeliverClaimBlocksTask implements Runnable
         boolean isIdle = false;
         try
         {
-            isIdle = player.isInsideVehicle() || player.getLocation().getBlock().isLiquid() ||
-                    !(playerData.lastAfkCheckLocation == null || playerData.lastAfkCheckLocation.distanceSquared(player.getLocation()) > idleThresholdSquared);
+            // Firestarter start :: fix sync chunk loads in idle check
+            final Location loc = player.getLocation();
+            boolean inLoadedChunk = player.getWorld().isChunkLoaded(player.getLocation().getBlockX() >> 4, player.getLocation().getBlockZ() >> 4);
+            isIdle = player.isInsideVehicle() || (inLoadedChunk && loc.getBlock().isLiquid()) ||
+                    !(playerData.lastAfkCheckLocation == null || playerData.lastAfkCheckLocation.distanceSquared(loc) > idleThresholdSquared);
+            /*isIdle = player.isInsideVehicle() || player.getLocation().getBlock().isLiquid() ||
+                    !(playerData.lastAfkCheckLocation == null || playerData.lastAfkCheckLocation.distanceSquared(player.getLocation()) > idleThresholdSquared);*/
+            // Firestarter end
         }
         catch (IllegalArgumentException ignore) //can't measure distance when to/from are different worlds
         {

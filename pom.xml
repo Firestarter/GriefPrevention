@@ -114,6 +114,13 @@
                     </exclusion>
                 </exclusions>
         </dependency>
+        <!-- Kerosene dependecy -->
+        <dependency>
+            <groupId>xyz.nkomarn</groupId>
+            <artifactId>Kerosene</artifactId>
+            <version>LATEST</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>
