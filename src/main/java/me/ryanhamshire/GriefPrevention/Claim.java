@@ -27,7 +27,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import xyz.nkomarn.Kerosene.paperlib.PaperLib;
+import xyz.nkomarn.kerosene.paperlib.PaperLib;
 
 import java.util.ArrayList;
 import java.util.Arrays;
