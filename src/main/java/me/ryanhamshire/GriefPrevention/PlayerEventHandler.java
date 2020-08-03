@@ -2803,7 +2803,6 @@ class PlayerEventHandler implements Listener
             if (noBuildReason != null)
             {
                 event.setCancelled(true);
-                System.out.println("Raid start prevented");
             }
         }
     }
