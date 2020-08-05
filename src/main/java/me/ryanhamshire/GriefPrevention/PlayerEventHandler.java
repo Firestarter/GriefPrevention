@@ -1907,6 +1907,17 @@ class PlayerEventHandler implements Listener
                     dyes.add(material);
             }
 
+            // Firestarter start :: handle map creation
+            if (materialInHand == Material.MAP)
+            {
+                String noBuildReason = instance.allowBuild(player, player.getLocation(), Material.AIR);
+                if (noBuildReason != null)
+                {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            // Firestarter end
 
             //if it's bonemeal, armor stand, spawn egg, etc - check for build permission //RoboMWM: also check flint and steel to stop TNT ignition
             if (clickedBlock != null && (materialInHand == Material.BONE_MEAL
