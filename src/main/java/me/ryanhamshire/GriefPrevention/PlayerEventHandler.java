@@ -79,7 +79,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -2800,24 +2799,6 @@ class PlayerEventHandler implements Listener
             }
         }
     }
-
-    // Firestarter start :: don't trigger raids in untrusted claims
-    @EventHandler(ignoreCancelled = true)
-    void onRaidTrigger(RaidTriggerEvent event) {
-        Player player = event.getPlayer();
-        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-        Claim claim = this.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
-        if (claim != null)
-        {
-            playerData.lastClaim = claim;
-            String noBuildReason = claim.allowBuild(player, Material.AIR);
-            if (noBuildReason != null)
-            {
-                event.setCancelled(true);
-            }
-        }
-    }
-    // Firestarter end
 
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
     private ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<Material, Boolean>();
