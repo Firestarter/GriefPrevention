@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.AccrueClaimBlocksEvent;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;

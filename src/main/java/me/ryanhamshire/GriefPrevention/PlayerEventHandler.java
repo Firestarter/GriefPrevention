@@ -93,11 +93,11 @@ import org.bukkit.util.BlockIterator;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1452,8 +1452,8 @@ class PlayerEventHandler implements Listener
     }
 
     //block use of buckets within other players' claims
-    private final HashSet<Material> commonAdjacentBlocks_water = new HashSet<>(Arrays.asList(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
-    private final HashSet<Material> commonAdjacentBlocks_lava = new HashSet<>(Arrays.asList(Material.LAVA, Material.DIRT, Material.STONE));
+    private final Set<Material> commonAdjacentBlocks_water = EnumSet.of(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE);
+    private final Set<Material> commonAdjacentBlocks_lava = EnumSet.of(Material.LAVA, Material.DIRT, Material.STONE);
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent)
@@ -1518,7 +1518,7 @@ class PlayerEventHandler implements Listener
         if (block.getY() >= instance.getSeaLevel(block.getWorld()) - 5 && !player.hasPermission("griefprevention.lava") && block.getWorld().getEnvironment() != Environment.NETHER)
         {
             //if certain blocks are nearby, it's less suspicious and not worth logging
-            HashSet<Material> exclusionAdjacentTypes;
+            Set<Material> exclusionAdjacentTypes;
             if (bucketEvent.getBucket() == Material.WATER_BUCKET)
                 exclusionAdjacentTypes = this.commonAdjacentBlocks_water;
             else
@@ -1881,10 +1881,10 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    String noBuildReason = claim.allowBuild(player, Material.OAK_BOAT); // Though only checks OAK_BOAT, permission should be same for all boats. Plus it being a boat doesn't seem to make a difference currently.
-                    if (noBuildReason != null)
+                    String reason = claim.allowContainers(player);
+                    if (reason != null)
                     {
-                        instance.sendMessage(player, TextMode.Err, noBuildReason);
+                        instance.sendMessage(player, TextMode.Err, reason);
                         event.setCancelled(true);
                     }
                 }
