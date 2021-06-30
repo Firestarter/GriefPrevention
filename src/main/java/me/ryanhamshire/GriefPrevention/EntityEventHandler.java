@@ -102,6 +102,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 //handles events related to entities
 public class EntityEventHandler implements Listener
@@ -131,13 +132,6 @@ public class EntityEventHandler implements Listener
                 event.setCancelled(true);
             }
         }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onLightningStrike(LightningStrikeEvent event)
-    {
-        if (event.getCause() == LightningStrikeEvent.Cause.TRIDENT)
-            event.getLightning().setMetadata("GP_TRIDENT", new FixedMetadataValue(GriefPrevention.instance, event.getLightning().getLocation()));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -666,7 +660,7 @@ public class EntityEventHandler implements Listener
         if (type == EntityType.PANDA)
             return ((Panda) entity).getMainGene() == Panda.Gene.AGGRESSIVE;
 
-        if (type == EntityType.HOGLIN || type == EntityType.POLAR_BEAR)
+        if ((type == EntityType.HOGLIN || type == EntityType.POLAR_BEAR) && entity instanceof Mob)
             return !entity.getPersistentDataContainer().has(luredByPlayer, PersistentDataType.BYTE) && ((Mob) entity).getTarget() != null;
 
         return false;
@@ -735,6 +729,7 @@ public class EntityEventHandler implements Listener
             {
                 DamageCause cause = event.getCause();
                 if (cause != null && (
+                        cause == DamageCause.BLOCK_EXPLOSION ||
                         cause == DamageCause.ENTITY_EXPLOSION ||
                                 cause == DamageCause.FALLING_BLOCK ||
                                 cause == DamageCause.FIRE ||
@@ -749,6 +744,8 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+
+        if (handleBlockExplosionDamage(event)) return;
 
         //the rest is only interested in entities damaging entities (ignoring environmental damage)
         if (!(event instanceof EntityDamageByEntityEvent)) return;
@@ -816,7 +813,7 @@ public class EntityEventHandler implements Listener
                         damagedData.lastClaim = damagedClaim;
                         if (GriefPrevention.instance.claimIsPvPSafeZone(damagedClaim))
                         {
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(damagedClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(damagedClaim, attacker, damaged);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -884,7 +881,7 @@ public class EntityEventHandler implements Listener
                                 GriefPrevention.instance.claimIsPvPSafeZone(attackerClaim))
                         {
                             attackerData.lastClaim = attackerClaim;
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim, attacker, defender);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -901,7 +898,7 @@ public class EntityEventHandler implements Listener
                                 GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                         {
                             defenderData.lastClaim = defenderClaim;
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, attacker, defender);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -944,7 +941,7 @@ public class EntityEventHandler implements Listener
                                     GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                             {
                                 defenderData.lastClaim = defenderClaim;
-                                PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                                PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, attacker, defender);
                                 Bukkit.getPluginManager().callEvent(pvpEvent);
 
                                 //if other plugins aren't making an exception to the rule 
@@ -962,6 +959,7 @@ public class EntityEventHandler implements Listener
 
             //if the damaged entity is a claimed item frame or armor stand, the damager needs to be a player with build trust in the claim
             if (subEvent.getEntityType() == EntityType.ITEM_FRAME
+                    || subEvent.getEntityType() == EntityType.GLOW_ITEM_FRAME
                     || subEvent.getEntityType() == EntityType.ARMOR_STAND
                     || subEvent.getEntityType() == EntityType.VILLAGER
                     || subEvent.getEntityType() == EntityType.ENDER_CRYSTAL)
@@ -1001,12 +999,12 @@ public class EntityEventHandler implements Listener
                     }
 
                     //otherwise player must have container trust in the claim
-                    String failureReason = claim.allowBuild(attacker, Material.AIR);
+                    Supplier<String> failureReason = claim.checkPermission(attacker, ClaimPermission.Build, event);
                     if (failureReason != null)
                     {
                         event.setCancelled(true);
                         if (sendErrorMessagesToPlayers)
-                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason);
+                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason.get());
                         return;
                     }
                 }
@@ -1044,7 +1042,7 @@ public class EntityEventHandler implements Listener
                                     message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
                                 if (sendErrorMessagesToPlayers)
                                     GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null), attacker, tameable);
                                 Bukkit.getPluginManager().callEvent(pvpEvent);
                                 if (!pvpEvent.isCancelled())
                                 {
@@ -1138,7 +1136,19 @@ public class EntityEventHandler implements Listener
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
                     else if (!(event.getEntity().getWorld().getPVP() && event.getEntity().getType() == EntityType.WOLF))
                     {
-                        String noContainersReason = claim.allowContainers(attacker);
+                        Supplier<String> override = null;
+                        if (sendErrorMessagesToPlayers)
+                        {
+                            final Player finalAttacker = attacker;
+                            override = () ->
+                            {
+                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                                return message;
+                            };
+                        }
+                        Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                         if (noContainersReason != null)
                         {
                             event.setCancelled(true);
@@ -1150,10 +1160,7 @@ public class EntityEventHandler implements Listener
 
                             if (sendErrorMessagesToPlayers)
                             {
-                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                                if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                                GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+                                GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                             }
                             event.setCancelled(true);
                         }
@@ -1167,6 +1174,31 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+    }
+
+    /**
+     * Handles entity damage caused by block explosions.
+     *
+     * @param event the EntityDamageEvent
+     * @return true if the damage has been handled
+     */
+    private boolean handleBlockExplosionDamage(EntityDamageEvent event)
+    {
+        if (event.getCause() != DamageCause.BLOCK_EXPLOSION) return false;
+
+        Entity entity = event.getEntity();
+
+        // Skip players - does allow players to use block explosions to bypass PVP protections,
+        // but also doesn't disable self-damage.
+        if (entity instanceof Player) return false;
+
+        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(entity.getLocation(), false, null);
+
+        // Only block explosion damage inside claims.
+        if (claim == null) return false;
+
+        event.setCancelled(true);
+        return true;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -1327,15 +1359,19 @@ public class EntityEventHandler implements Listener
             //otherwise the player damaging the entity must have permission
             else
             {
-                String noContainersReason = claim.allowContainers(attacker);
+                final Player finalAttacker = attacker;
+                Supplier<String> override = () ->
+                {
+                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                    if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                    return message;
+                };
+                Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
-                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                    if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                    GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                    event.setCancelled(true);
+                    GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                 }
 
                 //cache claim for later
@@ -1377,10 +1413,12 @@ public class EntityEventHandler implements Listener
                         if (claim != null)
                         {
                             cachedClaim = claim;
-                            if (thrower == null || claim.allowContainers(thrower) != null)
+                            Supplier<String> override = () -> instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                            final Supplier<String> noContainersReason = claim.checkPermission(thrower, ClaimPermission.Inventory, event, override);
+                            if (thrower == null || noContainersReason != null)
                             {
                                 event.setIntensity(effected, 0);
-                                instance.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                GriefPrevention.sendMessage(thrower, TextMode.Err, noContainersReason.get());
                                 return;
                             }
                         }
@@ -1413,7 +1451,7 @@ public class EntityEventHandler implements Listener
                     if (attackerClaim != null && GriefPrevention.instance.claimIsPvPSafeZone(attackerClaim))
                     {
                         attackerData.lastClaim = attackerClaim;
-                        PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim);
+                        PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim, thrower, effectedPlayer);
                         Bukkit.getPluginManager().callEvent(pvpEvent);
                         if (!pvpEvent.isCancelled())
                         {
@@ -1427,7 +1465,7 @@ public class EntityEventHandler implements Listener
                     if (defenderClaim != null && GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                     {
                         defenderData.lastClaim = defenderClaim;
-                        PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                        PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, thrower, effectedPlayer);
                         Bukkit.getPluginManager().callEvent(pvpEvent);
                         if (!pvpEvent.isCancelled())
                         {
